@@ -45,7 +45,7 @@ def search():
     start = (page - 1) * per_page
     end = start + per_page
     print(f'quert : [{query}]')
-    print(vectorizer)
+    # print(vectorizer)
     # 将查询转化为 TF-IDF 向量
     query_tfidf = vectorizer.transform([query])
 
@@ -56,7 +56,7 @@ def search():
     # 获取前 100 个相关文档
     top_indices = similarity_scores.argsort()[::-1][:100]
     results = []
-    print(docs_df)
+    # print(docs_df)
     for idx in top_indices:
         results.append({
             "doc_id": docs_df.iloc[idx]["doc_id"],
