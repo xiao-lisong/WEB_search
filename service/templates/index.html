@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Search</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"> <!-- For icons -->
+    <style>
+        /* 通用样式 */
+        body {
+            background: #f4f4f4;
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 搜索页样式 */
+        .search-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .search-box {
+            position: relative;
+            background: #fff;
+            padding: 10px;
+            border-radius: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            width: 60%;
+            z-index: 10;
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            width: 90%;
+            padding: 10px;
+            border-radius: 30px;
+            font-size: 16px;
+        }
+
+        .search-box button {
+            border: none;
+            background-color: #1a73e8;
+            padding: 10px 20px;
+            color: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .search-box button:hover {
+            background-color: #0056b3;
+        }
+
+        h1 {
+            color: #1a73e8;
+            margin-bottom: 20px; /* 给标题增加底部间距 */
+        }
+
+        /* 结果页样式 */
+        .results-page {
+            padding-top: 80px; /* 这里加上了padding-top，避免搜索框挡住内容 */
+        }
+
+        .results-container {
+            margin-top: 20px;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-body {
+            padding: 15px;
+        }
+
+        /* 用于显示结果链接的样式 */
+        .result-url {
+            font-size: 12px;  /* 字体较小 */
+            color: #808080;  /* 灰色 */
+            text-decoration: none;  /* 不加下划线 */
+        }
+
+        .result-url:hover {
+            color: #555555;  /* 鼠标悬停时变暗 */
+        }
+
+        /* 用于显示得分的样式 */
+        .result-score {
+            font-size: 14px;  /* 字体稍小 */
+            color: #000000;  /* 黑色 */
+        }
+
+        #pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #pagination button {
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 搜索页 -->
+    <div id="searchPage" class="search-page">
+        <h1>Web Search</h1>
+        <div class="search-box">
+            <input type="text" id="query" placeholder="请输入搜索内容..." />
+            <button onclick="search()">🔍</button>
+        </div>
+    </div>
+
+    <!-- 结果页 -->
+    <div id="resultsPage" class="results-page d-none">
+        <!-- 搜索框 -->
+        <div class="search-box" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); width: 80%;">
+            <input type="text" id="queryResults" placeholder="请输入搜索内容..." />
+            <button onclick="searchResults()">🔍</button>
+        </div>
+
+        <!-- 搜索结果区域 -->
+        <div id="results" class="results-container">
+            <!-- 搜索结果将显示在这里 -->
+        </div>
+
+        <!-- 分页区域 -->
+        <div id="pagination" class="d-none">
+            <button id="prevPage" class="btn btn-primary" onclick="changePage(-1)">上一页</button>
+            <span id="pageNumber" class="mx-2">第 1 页</span>
+            <span id="totalPages" class="mx-2">共 1 页</span>
+            <button id="nextPage" class="btn btn-primary" onclick="changePage(1)">下一页</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1; // 当前页
+        let totalResults = 0; // 总结果数
+        let totalPages = 0; // 总页数
+        const resultsPerPage = 10; // 每页显示10条结果
+        let lastSearchQuery = ''; // 用于存储上次搜索的关键词
+
+        // 显示结果页
+        function showResultsPage(query) {
+            lastSearchQuery = query; // 保留当前的搜索关键字
+            document.getElementById('searchPage').classList.add('d-none');
+            document.getElementById('resultsPage').classList.remove('d-none');
+            document.getElementById('queryResults').value = query; // 保留输入框中的搜索内容
+        }
+
+        // 搜索函数
+        function search() {
+            const query = document.getElementById('query').value;
+            if (!query.trim()) {
+                alert("请输入有效的搜索内容！");
+                return;
+            }
+
+            // 更新当前搜索关键字
+            lastSearchQuery = query;
+
+            // 请求数据
+            fetch(`/search`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query: query, page: currentPage })  // 确保传递当前页码
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.error(data);
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                totalResults = data.total; // 更新总结果数
+                totalPages = data.total_pages; // 更新总页数
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = ''; // 清空结果
+
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(result => {
+                        const resultItem = document.createElement('div');
+                        resultItem.classList.add('card');
+                        resultItem.innerHTML = `
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="${result.url}" target="_blank">${result.title}</a>
+                                </h5>
+                                <p class="card-text">${result.content}</p>
+                                <h5 class="card-title">
+                                    <a href="${result.url}" target="_blank" class="result-url">${result.url}</a>
+                                </h5>
+                                <p class="card-text result-score">score: ${result.score}</p>
+                        `;
+                        resultsDiv.appendChild(resultItem);
+                    });
+                } else {
+                    resultsDiv.innerHTML = '<p>没有找到相关结果。</p>';
+                }
+
+                updatePagination(); // 更新分页按钮
+                showResultsPage(query); // 显示结果页并保留搜索词
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('搜索出错，请稍后再试');
+            });
+        }
+
+        // 更新分页按钮
+        function updatePagination() {
+            document.getElementById('pageNumber').textContent = `第 ${currentPage} 页`;
+            document.getElementById('totalPages').textContent = `共 ${totalPages} 页`;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages;
+
+            // 显示分页区域
+            document.getElementById('pagination').classList.remove('d-none');
+        }
+
+        // 切换页面
+        function changePage(offset) {
+            const nextPage = currentPage + offset;
+            if (nextPage >= 1 && nextPage <= totalPages) {
+                currentPage = nextPage;
+                // 滚动到顶部
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                searchWithCurrentQuery(); // 确保请求当前搜索词并分页
+            }
+        }
+
+        // 使用当前的搜索关键词请求数据
+        function searchWithCurrentQuery() {
+            const query = lastSearchQuery; // 使用当前存储的搜索关键词
+            fetch(`/search`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query: query, page: currentPage })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                totalResults = data.total;
+                totalPages = data.total_pages;
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = ''; // 清空结果
+                //alert(`部分搜索结果:\n${JSON.stringify(data.results.slice(0, 5), null, 2)}`);
+
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(result => {
+                        const resultItem = document.createElement('div');
+                        resultItem.classList.add('card');
+                        resultItem.innerHTML = `
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="${result.url}" target="_blank">${result.title}</a>
+                                </h5>
+                                <p class="card-text">${result.content}</p>
+                                <h5 class="card-title">
+                                    <a href="${result.url}" target="_blank" class="result-url">${result.url}</a>
+                                </h5>
+                                <p class="card-text result-score">score: ${result.score}</p>
+                            </div>
+                        `;
+                        resultsDiv.appendChild(resultItem);
+                    });
+                } else {
+                    resultsDiv.innerHTML = '<p>没有找到相关结果。</p>';
+                }
+
+                updatePagination();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`搜索出错，请稍后再试\n详细错误信息: ${JSON.stringify(error, null, 2)}`);
+            });
+        }
+
+        // 搜索结果页进行搜索
+        function searchResults() {
+            const query = document.getElementById('queryResults').value;
+            if (!query.trim()) {
+                alert("请输入有效的搜索内容！");
+                return;
+            }
+
+            lastSearchQuery = query; // 更新搜索词
+            currentPage = 1; // 重置为第一页
+            // 滚动到顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            searchWithCurrentQuery();
+        }
+    </script>
+
+<script>
+    // 在搜索框中按下回车键时执行搜索
+    document.getElementById('query').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            search(); // 当按下回车时触发搜索
+        }
+    });
+
+    // 在结果页的搜索框中按下回车键时执行搜索
+    document.getElementById('queryResults').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            searchResults(); // 当按下回车时触发搜索
+        }
+    });
+
+    // 其他代码保持不变
+</script>
+
+
+</body>
+</html>
