@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web Search</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"> <!-- For icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <style>
         /* 通用样式 */
         body {
@@ -48,7 +48,7 @@
 
         .search-box button {
             border: none;
-            background-color: #1a73e8;
+            background-color: #c1cedf;
             padding: 10px 20px;
             color: #fff;
             border-radius: 50%;
@@ -106,6 +106,7 @@
         #pagination {
             text-align: center;
             margin-top: 20px;
+            padding-bottom: 80px;
         }
 
         #pagination button {
@@ -122,6 +123,9 @@
             <input type="text" id="query" placeholder="请输入搜索内容..." />
             <button onclick="search()">🔍</button>
         </div>
+        <footer style="position: absolute; bottom: 10px; text-align: center; width: 100%; color: #555;">
+            &copy; 2024 肖礼松(Xiao Lisong Email:xiao_lisong@outlook.com) All rights reserved.
+        </footer>
     </div>
 
     <!-- 结果页 -->
@@ -144,6 +148,9 @@
             <span id="totalPages" class="mx-2">共 1 页</span>
             <button id="nextPage" class="btn btn-primary" onclick="changePage(1)">下一页</button>
         </div>
+        <footer style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f4f4f4; text-align: center; padding: 10px; color: #555; box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);">
+            &copy; 2024 肖礼松(Xiao Lisong Email:xiao_lisong@outlook.com) All rights reserved.
+        </footer>
     </div>
 
     <script>
@@ -329,7 +336,6 @@
         }
     });
 
-    // 其他代码保持不变
 </script>
 
 
