@@ -8,8 +8,8 @@ if __name__ == "__main__":
     # 初始化 Flask 应用
     app = Flask(__name__)
 
-    # 加载数据到全局
-    docs_df, vectorizer, tfidf_matrix = load_dataset("MSMARCO/subset100000_msmarco-docs.tsv")
+    # 加载数据到全局#subset1000_msmarco-docs.tsv
+    docs_df, vectorizer, tfidf_matrix = load_dataset("MSMARCO/all_dataset.tsv")
 
     # 传递到蓝图
     update_env(docs_df, vectorizer, tfidf_matrix)
@@ -17,4 +17,4 @@ if __name__ == "__main__":
     # 注册蓝图
     app.register_blueprint(service)
     # print(docs_df)
-    app.run(debug=True)
+    app.run(debug=False)
